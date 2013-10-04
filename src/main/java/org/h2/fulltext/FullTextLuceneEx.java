@@ -6,6 +6,7 @@
  */
 package org.h2.fulltext;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -17,16 +18,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.cjk.CJKAnalyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Searcher;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -44,16 +52,6 @@ import org.h2.util.Utils;
  import org.apache.lucene.search.Hits;
  //*/
 //## LUCENE3 ##
-import java.io.File;
-import java.lang.reflect.Constructor;
-
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
-import org.apache.lucene.index.IndexWriter;
 
 //*/
 
@@ -81,22 +79,26 @@ public class FullTextLuceneEx extends FullText {
 
 	/** get Lucene version */
 	private static Version getVersion() {
-		return Version.valueOf("LUCENE_" + Utils.getProperty("h2.luceneVersion", "35"));
+		return Version.valueOf("LUCENE_36");
+		
+//		return Version.valueOf("LUCENE_" + Utils.getProperty("h2.luceneVersion", "35"));
 	}
 
 	/** get Analyzer instance */
 	private static Analyzer getAnalyzer() {
-		String className = Utils.getProperty("h2.luceneAnalyzer", null);
-		try {
-			if (className != null) {
-				Constructor<Analyzer> constructor = (Constructor<Analyzer>) Class.forName(className).getConstructor(
-						Version.class);
-				return constructor.newInstance(LUCENE_VERSION);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new StandardAnalyzer(LUCENE_VERSION);
+		return new CJKAnalyzer(LUCENE_VERSION);
+		
+//		String className = Utils.getProperty("h2.luceneAnalyzer", null);
+//		try {
+//			if (className != null) {
+//				Constructor<Analyzer> constructor = (Constructor<Analyzer>) Class.forName(className).getConstructor(
+//						Version.class);
+//				return constructor.newInstance(LUCENE_VERSION);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//		return new StandardAnalyzer(LUCENE_VERSION);
 	}
 
 	private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
